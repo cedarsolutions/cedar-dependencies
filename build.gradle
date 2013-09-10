@@ -1,4 +1,26 @@
 // vim: set ft=groovy:
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// *
+// *              C E D A R
+// *          S O L U T I O N S       "Software done right."
+// *           S O F T W A R E
+// *
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// *
+// * Copyright (c) 2011-2013 Kenneth J. Pronovici.
+// * All rights reserved.
+// *
+// * This program is free software; you can redistribute it and/or
+// * modify it under the terms of the Apache License, Version 2.0.
+// * See LICENSE for more information about the licensing terms.
+// *
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// *
+// * Author   : Kenneth J. Pronovici <pronovic@ieee.org>
+// * Language : Gradle (>= 1.7)
+// * Project  : Common Dependencies
+// *
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 // http://stackoverflow.com/questions/1163173/why-use-gradle-instead-of-ant-or-maven
 
 // ***************
@@ -38,11 +60,35 @@ propFileLoader.traditionalPropertiesInit()
 subprojects {
    apply plugin: "java"
    apply plugin: "maven"
-   apply plugin: 'signing'
+   apply plugin: "signing"
 
    group = "com.googlecode.cedar-common"
    buildDir = "../build/${project.name}"
    
+   uploadArchives {
+       repositories {
+           mavenDeployer {
+               repository(url: config_mavenPublishRepositoryUrl)
+               beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) } 
+           }
+       }
+   }
+
+   install { 
+   }
+
+   artifacts {
+      jar
+   }
+
+   signing {
+      required = { gradle.taskGraph.hasTask(":${project.name}:uploadArchives") }
+      sign jar
+   }
+
+   task publish(dependsOn: uploadArchives)
+
+   // "generate" the library jar by copying what's checked into revision control
    task libraryJar(type: Copy) {
       outputs.upToDateWhen { false }
       from(".")
@@ -53,28 +99,6 @@ subprojects {
    // this tricks gradle into generating the jar by executing libraryJar
    tasks.jar.dependsOn(libraryJar)
    jar.enabled = false
-
-   uploadArchives {
-       repositories {
-           mavenDeployer {
-               repository(url: config_mavenPublishRepositoryUrl)
-               beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) } 
-           }
-       }
-   }
-
-   install { }
-
-   signing {
-      required = { gradle.taskGraph.hasTask(":${project.name}:uploadArchives") }
-      sign jar
-   }
-
-   artifacts {
-      jar
-   }
-
-   task publish(dependsOn: uploadArchives)
 
    // force the signJar task to run every time, even if it thinks it's up-to-date
    tasks.matching { task -> task.name == "signJar" }.all {
@@ -190,33 +214,42 @@ gradle.taskGraph.whenReady { taskGraph ->
    if (taskGraph.allTasks.any { it instanceof Sign && it.required }) {
       Console console = System.console()
       if (console != null) {
-         getPassphraseViaConsole()
+         getInputViaConsole("Enter passphrase for GPG key ${config_gpgKeyId}:", true, { input -> setSignatureConfiguration(input) })
       } else {
-         getPassphraseViaPopup()
+         getInputViaPopup("GPG Key ${config_gpgKeyId}", "Enter passphrase:", true, { input -> setSignatureConfiguration(input) })
       }
    }
 }
 
-// Get the GPG passphrase via the system console 
-def getPassphraseViaConsole() {
+// Get input from a user via the system console, executing a closure with the result
+def getInputViaConsole(label, secure, action) {
    Console console = System.console()
-   def passphrase = console.readPassword("\n\nEnter passphrase for GPG key ${config_gpgKeyId}: ")
-   setSignatureConfiguration(passphrase)
+   if (secure) {
+      def value = console.readPassword("\n\n" + label + " ")
+      action(value)
+   } else {
+      def value = console.readLine("\n\n" + label + " ")
+      action(value)
+   }
 }
 
-// Get the GPG passphrase via a GUI pop-up, if the console is not available
-def getPassphraseViaPopup() {
+// Get password input from a user, executing a closure with the result
+def getInputViaPopup(title, label, secure, action) {
    boolean alive = true
 
    def swing = new SwingBuilder()
-   def button = swing.button('OK')
-   def label = swing.label("Enter passphrase: ")
-   def passphrase = null
+   def button = swing.button("Ok")
+   def prefix = swing.label(label)
+   def value = null
 
-   def frame = swing.frame(title: "GPG Key ${config_gpgKeyId}", defaultCloseOperation: JFrame.EXIT_ON_CLOSE) {
+   def frame = swing.frame(title: title, defaultCloseOperation: JFrame.EXIT_ON_CLOSE) {
       panel {
-         widget(label)
-         passphrase = passwordField(columns:18)
+         widget(prefix)
+         if (secure) {
+            value = passwordField(columns:18)
+         } else {
+            value = textField(columns:18)
+         }
          widget(button)
       }
    }
@@ -224,12 +257,12 @@ def getPassphraseViaPopup() {
    frame.setLocationRelativeTo(null)
 
    button.actionPerformed = {
-      setSignatureConfiguration(passphrase.text)
+      action(value.text)
       alive = false
    }
 
-   passphrase.actionPerformed = {
-      setSignatureConfiguration(passphrase.text)
+   value.actionPerformed = {
+      action(value.text)
       alive = false
    }
 
