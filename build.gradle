@@ -22,7 +22,8 @@ apply plugin: "eclipse"
 apply plugin: "javaPropFile"
 
 // Imports
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import groovy.swing.SwingBuilder
+import javax.swing.JFrame
 
 // This loads configuration from app.properties and overrides with local.properties
 // See: https://github.com/unsaved/gradle-javaPropFile-plugin/tree/master/doc#void-propfileloadertraditionalpropertiesinit
@@ -184,16 +185,69 @@ project(":cpsuite") {
 // * Digital signatures
 // *********************
 
-// Get the GPG passphrase from the user when it's needed
+// Set all of the signature configuration, for all projects
+def setSignatureConfiguration(passphrase) {
+   allprojects { ext."signing.keyId" = config_gpgKeyId }
+   allprojects { ext."signing.secretKeyRingFile" = config_gpgSecretKey }
+   allprojects { ext."signing.password" = passphrase }
+}
+
+// Get the GPG passphrase from the user when it's needed 
 gradle.taskGraph.whenReady { taskGraph ->
    if (taskGraph.allTasks.any { it instanceof Sign }) {
       Console console = System.console()
-      console.printf "\n\nEnter GPG passphrase for key id ${config_gpgKeyId} on ${config_gpgSecretKey}.\n"
-      def passphrase = console.readPassword("Passphrase: ")
-      allprojects { ext."signing.keyId" = config_gpgKeyId }
-      allprojects { ext."signing.secretKeyRingFile" = config_gpgSecretKey }
-      allprojects { ext."signing.password" = passphrase }
-    }
+      if (console != null) {
+         getPassphraseViaConsole()
+      } else {
+         getPassphraseViaPopup()
+      }
+   }
+}
+
+// Get the GPG passphrase via the system console 
+def getPassphraseViaConsole() {
+   Console console = System.console()
+   def passphrase = console.readPassword("\n\nEnter passphrase for GPG key ${config_gpgKeyId}: ")
+   setSignatureConfiguration(passphrase)
+}
+
+// Get the GPG passphrase via a GUI pop-up, if the console is not available
+def getPassphraseViaPopup() {
+   boolean alive = true
+
+   def swing = new SwingBuilder()
+   def button = swing.button('OK')
+   def label = swing.label("Enter passphrase: ")
+   def passphrase = null
+
+   def frame = swing.frame(title: "GPG Key ${config_gpgKeyId}", defaultCloseOperation: JFrame.EXIT_ON_CLOSE) {
+      panel {
+         widget(label)
+         passphrase = passwordField(columns:18)
+         widget(button)
+      }
+   }
+
+   frame.setLocationRelativeTo(null)
+
+   button.actionPerformed = {
+      setSignatureConfiguration(passphrase.text)
+      alive = false
+   }
+
+   passphrase.actionPerformed = {
+      setSignatureConfiguration(passphrase.text)
+      alive = false
+   }
+
+   frame.pack()
+   frame.show()
+
+   while (alive) {
+      sleep(1000)
+   }
+
+   frame.hide()
 }
 
 
