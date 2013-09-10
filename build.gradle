@@ -32,15 +32,12 @@ propFileLoader.traditionalPropertiesInit()
 // * Project configuration
 // ************************
 
-// Common setup for all projects
-allprojects {
+// Common setup for subprojects
+subprojects {
    apply plugin: "java"
    apply plugin: "maven"
    group = "com.googlecode.cedar-common"
-} 
 
-// Common setup for subprojects
-subprojects {
    uploadArchives {
        repositories {
            mavenDeployer {
@@ -57,7 +54,7 @@ subprojects {
 // Subproject for gwt-sl dependency
 project(":gwt-sl") {
 
-   def version = "1.2"
+   version = "1.2"
    buildDir = "../build/gwt-sl"
    
    task libraryJar(type: Copy) {
@@ -65,7 +62,6 @@ project(":gwt-sl") {
       from(".")
       into(file(buildDir.canonicalPath + "/libs").canonicalPath)
       include("gwt-sl-${version}.jar")
-      rename("gwt-sl-${version}.jar", "gwt-sl.jar")
    }
 
    // this tricks gradle into generating the jar by executing libraryJar
@@ -73,11 +69,7 @@ project(":gwt-sl") {
    jar.enabled = false
 
    artifacts {
-      libraryJar
-   }
-
-   artifacts {
-      file("gwt-sl-1.2.jar")
+      jar
    }
 
    uploadArchives {
@@ -122,7 +114,7 @@ project(":gwt-sl") {
 // Subproject for cpsuite dependency
 project(":cpsuite") {
 
-   def version = "1.2.6"
+   version = "1.2.6"
    buildDir = "../build/cpsuite"
    
    task libraryJar(type: Copy) {
@@ -130,7 +122,6 @@ project(":cpsuite") {
       from(".")
       into(file(buildDir.canonicalPath + "/libs").canonicalPath)
       include("cpsuite-${version}.jar")
-      rename("cpsuite-${version}.jar", "cpsuite.jar")
    }
 
    // this tricks gradle into generating the jar by executing libraryJar
@@ -138,7 +129,7 @@ project(":cpsuite") {
    jar.enabled = false
 
    artifacts {
-      libraryJar
+      jar
    }
    
    uploadArchives {
