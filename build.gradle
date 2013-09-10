@@ -37,19 +37,36 @@ propFileLoader.traditionalPropertiesInit()
 subprojects {
    apply plugin: "java"
    apply plugin: "maven"
+   apply plugin: 'signing'
+
    group = "com.googlecode.cedar-common"
 
    uploadArchives {
        repositories {
            mavenDeployer {
                repository(url: config_mavenPublishRepositoryUrl)
+               beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) } 
            }
        }
    }
 
    install { }
 
+   signing {
+      sign jar
+   }
+
+   artifacts {
+      jar
+   }
+
    task publish(dependsOn: uploadArchives)
+
+   // force the signJar task to run every time, even if it thinks it's up-to-date
+   tasks.matching { task -> task.name == "signJar" }.all {
+      outputs.upToDateWhen { false }
+   }
+
 }
 
 // Subproject for gwt-sl dependency
@@ -69,10 +86,6 @@ project(":gwt-sl") {
    tasks.jar.dependsOn(libraryJar)
    jar.enabled = false
 
-   artifacts {
-      jar
-   }
-
    uploadArchives {
        repositories {
            mavenDeployer {
@@ -88,8 +101,9 @@ project(":gwt-sl") {
                               "for Hibernate-managed entities."
                   url "https://code.google.com/p/gwt-sl/"
                   scm {
-                     url "n/a"
-                     connection "n/a"
+                     url "scm:https://code.google.com/p/cedar-common.dependencies/"
+                     connection "scm:hg:https://code.google.com/p/cedar-common.dependencies/"
+                     developerConnection "scm:hg:https://code.google.com/p/cedar-common.dependencies/"
                   }
                   licenses {
                      license {
@@ -129,10 +143,6 @@ project(":cpsuite") {
    tasks.jar.dependsOn(libraryJar)
    jar.enabled = false
 
-   artifacts {
-      jar
-   }
-   
    uploadArchives {
        repositories {
            mavenDeployer {
@@ -144,8 +154,9 @@ project(":cpsuite") {
                               "Dynamically generates JUnit4 test suites."
                   url "http://johanneslink.net/projects/cpsuite.jsp"
                   scm {
-                     url "n/a"
-                     connection "n/a"
+                     url "scm:https://code.google.com/p/cedar-common.dependencies/"
+                     connection "scm:hg:https://code.google.com/p/cedar-common.dependencies/"
+                     developerConnection "scm:hg:https://code.google.com/p/cedar-common.dependencies/"
                   }
                   licenses {
                      license {
@@ -166,6 +177,23 @@ project(":cpsuite") {
        }
    }
 
+}
+
+
+// *********************
+// * Digital signatures
+// *********************
+
+// Get the GPG passphrase from the user when it's needed
+gradle.taskGraph.whenReady { taskGraph ->
+   if (taskGraph.allTasks.any { it instanceof Sign }) {
+      Console console = System.console()
+      console.printf "\n\nEnter GPG passphrase for key id ${config_gpgKeyId} on ${config_gpgSecretKey}.\n"
+      def passphrase = console.readPassword("Passphrase: ")
+      allprojects { ext."signing.keyId" = config_gpgKeyId }
+      allprojects { ext."signing.secretKeyRingFile" = config_gpgSecretKey }
+      allprojects { ext."signing.password" = passphrase }
+    }
 }
 
 
