@@ -18,6 +18,7 @@ buildscript {
 
 // Plugins
 apply plugin: "base"
+apply plugin: "eclipse"
 apply plugin: "javaPropFile"
 
 // Imports
@@ -166,4 +167,32 @@ project(":cpsuite") {
    }
 
 }
+
+
+// ************************
+// * Eclipse configuration
+// ************************
+// The eclipse plugin is used to generate Eclipse project files
+
+// Hide the various derived directories from Eclipse
+project.eclipse.project.file.withXml { provider ->
+   ignoreResourcesFromDirectories(provider, ["build", ])
+} 
+
+// Ignore resources in a specific directory
+// See: http://forums.gradle.org/gradle/topics/eclipse_generated_files_should_be_put_in_the_same_place_as_the_gradle_generated_files
+def ignoreResourcesFromDirectories(provider, directories) {
+   def filter = provider.asNode().appendNode("filteredResources").appendNode("filter")
+   filter.appendNode("id", String.valueOf(System.currentTimeMillis()))  // this id must be unique
+   filter.appendNode("name")
+   filter.appendNode("type", "26")
+   def matcher = filter.appendNode("matcher")
+   matcher.appendNode("id", "org.eclipse.ui.ide.orFilterMatcher")
+   def arguments = matcher.appendNode("arguments")
+   directories.each {
+      def dirMatcher = arguments.appendNode("matcher")
+      dirMatcher.appendNode("id", "org.eclipse.ui.ide.multiFilter")
+      dirMatcher.appendNode("arguments", "1.0-projectRelativePath-matches-true-false-${it}")
+   }
+} 
 
