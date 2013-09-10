@@ -54,6 +54,7 @@ subprojects {
    install { }
 
    signing {
+      required = { gradle.taskGraph.hasTask(":${project.name}:uploadArchives") }
       sign jar
    }
 
@@ -194,7 +195,7 @@ def setSignatureConfiguration(passphrase) {
 
 // Get the GPG passphrase from the user when it's needed 
 gradle.taskGraph.whenReady { taskGraph ->
-   if (taskGraph.allTasks.any { it instanceof Sign }) {
+   if (taskGraph.allTasks.any { it instanceof Sign && it.required }) {
       Console console = System.console()
       if (console != null) {
          getPassphraseViaConsole()
