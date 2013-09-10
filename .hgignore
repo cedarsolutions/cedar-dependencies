@@ -3,3 +3,4 @@ syntax: glob
 *.swp
 build/*
 .project
+local.properties
