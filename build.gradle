@@ -63,7 +63,7 @@ subprojects {
    apply plugin: "signing"
 
    group = "com.googlecode.cedar-common"
-   buildDir = "../build/${project.name}"
+   buildDir = { "../build/${project.name}" }
    
    uploadArchives {
        repositories {
@@ -88,6 +88,18 @@ subprojects {
 
    task publish(dependsOn: uploadArchives)
 
+   // "generate" the library jar by copying what's checked into revision control
+   task libraryJar(type: Copy) {
+      outputs.upToDateWhen { false }
+      from(file("."))
+      into(file(buildDir.canonicalPath + "/libs").canonicalPath)
+      include({ "${project.name}-${version}.jar" })
+   }
+
+   // this tricks gradle into generating the jar by executing libraryJar
+   tasks.jar.dependsOn(libraryJar)
+   jar.enabled = false
+
    // force the signJar task to run every time, even if it thinks it's up-to-date
    tasks.matching { task -> task.name == "signJar" }.all {
       outputs.upToDateWhen { false }
@@ -99,18 +111,6 @@ subprojects {
 project(":gwt-sl") {
 
    version = "1.2"
-
-   // "generate" the library jar by copying what's checked into revision control
-   task libraryJar(type: Copy) {
-      outputs.upToDateWhen { false }
-      from(file("."))
-      into(file(buildDir.canonicalPath + "/libs").canonicalPath)
-      include("${project.name}-${version}.jar")
-   }
-
-   // this tricks gradle into generating the jar by executing libraryJar
-   tasks.jar.dependsOn(libraryJar)
-   jar.enabled = false
 
    uploadArchives {
        repositories {
@@ -156,18 +156,6 @@ project(":gwt-sl") {
 project(":cpsuite") {
 
    version = "1.2.6"
-
-   // "generate" the library jar by copying what's checked into revision control
-   task libraryJar(type: Copy) {
-      outputs.upToDateWhen { false }
-      from(file("."))
-      into(file(buildDir.canonicalPath + "/libs").canonicalPath)
-      include("${project.name}-${version}.jar")
-   }
-
-   // this tricks gradle into generating the jar by executing libraryJar
-   tasks.jar.dependsOn(libraryJar)
-   jar.enabled = false
 
    uploadArchives {
        repositories {
