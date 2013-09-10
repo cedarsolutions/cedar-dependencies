@@ -1,0 +1,52 @@
+DEPENDENCIES
+
+The CedarCommon project relies on functionality taken from a variety of open
+source software packages.
+
+Most external functionality has been pulled into the project in compiled form,
+as part of a jar file.  Most jars are sourced from Maven.  In a few cases, jar
+files are not available in Maven. I have taken those jar files and uploaded
+them to Maven under the cedar-common group, to make them accessible to other
+projects the depend on cedar-common.  These dependencies are documented below.
+
+A dependency has several attributes:
+
+- License is the open-source license the code was released under
+- Upstream project is the software project which is the source of the code
+- Binary source is the location the jar file was taken from
+
+Remember that a binary source might be a standalone source (i.e. providing only
+jars for its own project), but some binary sources also provide related
+dependencies all bundled together in a single download.
+
+
+LICENSES
+
+   License                      License Text
+   ================================================================================================
+   Apache License v2.0          doc/licenses/apache_v2.0_license.txt
+
+
+UPSTREAM PROJECTS
+
+   Project                      License                 URL
+   ================================================================================================
+   Classpath Suite              Apache License v2.0     http://www.johanneslink.net/projects/cpsuite.jsp
+   GWT Server Library           Apache License v2.0     http://code.google.com/p/gwt-sl/
+
+
+BINARY SOURCES
+
+   Source                       Project                 Location
+   ================================================================================================
+   Classpath Suite v1.2.6       ClasspathSuite          cpsuite-1.2.6.jar
+   GWT Server Library v1.2      GWT Server Library      gwt-sl-1.2.jar
+
+
+JAR FILES
+
+   Jar File                     Project                 Binary Source
+   ================================================================================================
+   cpsuite-1.2.6.jar            ClasspathSuite          ClasspathSuite v1.2.6
+   gwt-sl-1.2.jar               GWT Server Library      GWT Server Libary v1.2
+

@@ -1,0 +1,178 @@
+// vim: set ft=groovy:
+// http://stackoverflow.com/questions/1163173/why-use-gradle-instead-of-ant-or-maven
+
+// ***************
+// * Gradle setup
+// ***************
+
+// Sources for the build script itself
+buildscript {
+   repositories {
+      mavenCentral()
+   }
+
+   dependencies {
+      classpath "com.admc:gradle-javaPropFile-plugin:latest.integration"
+   }
+} 
+
+// Plugins
+apply plugin: "base"
+apply plugin: "javaPropFile"
+
+// Imports
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+
+// This loads configuration from app.properties and overrides with local.properties
+// See: https://github.com/unsaved/gradle-javaPropFile-plugin/tree/master/doc#void-propfileloadertraditionalpropertiesinit
+propFileLoader.traditionalPropertiesInit()  
+
+
+// ************************
+// * Project configuration
+// ************************
+
+// Common setup for all projects
+allprojects {
+   apply plugin: "java"
+   apply plugin: "maven"
+   group = "com.googlecode.cedar-common"
+} 
+
+// Common setup for subprojects
+subprojects {
+   uploadArchives {
+       repositories {
+           mavenDeployer {
+               repository(url: config_mavenPublishRepositoryUrl)
+           }
+       }
+   }
+
+   install { }
+
+   task publish(dependsOn: uploadArchives)
+}
+
+// Subproject for gwt-sl dependency
+project(":gwt-sl") {
+
+   def version = "1.2"
+   buildDir = "../build/gwt-sl"
+   
+   task libraryJar(type: Copy) {
+      outputs.upToDateWhen { false }
+      from(".")
+      into(file(buildDir.canonicalPath + "/libs").canonicalPath)
+      include("gwt-sl-${version}.jar")
+      rename("gwt-sl-${version}.jar", "gwt-sl.jar")
+   }
+
+   // this tricks gradle into generating the jar by executing libraryJar
+   tasks.jar.dependsOn(libraryJar)
+   jar.enabled = false
+
+   artifacts {
+      libraryJar
+   }
+
+   artifacts {
+      file("gwt-sl-1.2.jar")
+   }
+
+   uploadArchives {
+       repositories {
+           mavenDeployer {
+               pom.artifactId = "gwt-sl"
+               pom.version = "${version}"
+               pom.project {
+                  name "GWT Server Library (Repackaged)"
+                  description "*** THIS IS AN OBSOLETE VERSION UPLOADED FOR USE WITH CEDAR-COMMON.*** " +
+                              "The Server Library for GWT is a collection of Java server " +
+                              "side components for the Google Web Toolkit AJAX framework " +
+                              "with the focus on the Spring framework by facilitating " + 
+                              "publishing of Spring beans as RPC services with support " +
+                              "for Hibernate-managed entities."
+                  url "https://code.google.com/p/gwt-sl/"
+                  scm {
+                     url "n/a"
+                     connection "n/a"
+                  }
+                  licenses {
+                     license {
+                        name "The Apache Software License, Version 2.0"
+                        url "http://www.apache.org/license/LICENSE-2.0.txt"
+                        distribution "repo"
+                     }
+                  }
+                  developers {
+                     developer {
+                        id "author"
+                        name "George Georgovassilis"
+                        email "g.georgovassilis@gmail.com"
+                     }
+                  }
+               }
+           }
+       }
+   }
+
+}
+
+// Subproject for cpsuite dependency
+project(":cpsuite") {
+
+   def version = "1.2.6"
+   buildDir = "../build/cpsuite"
+   
+   task libraryJar(type: Copy) {
+      outputs.upToDateWhen { false }
+      from(".")
+      into(file(buildDir.canonicalPath + "/libs").canonicalPath)
+      include("cpsuite-${version}.jar")
+      rename("cpsuite-${version}.jar", "cpsuite.jar")
+   }
+
+   // this tricks gradle into generating the jar by executing libraryJar
+   tasks.jar.dependsOn(libraryJar)
+   jar.enabled = false
+
+   artifacts {
+      libraryJar
+   }
+   
+   uploadArchives {
+       repositories {
+           mavenDeployer {
+               pom.artifactId = "cpsuite"
+               pom.version = "${version}"
+               pom.project {
+                  name "Classpath Suite (Repackaged)"
+                  description "*** THIS VERSION UPLOADED FOR USE WITH CEDAR-COMMON.*** " +
+                              "Dynamically generates JUnit4 test suites."
+                  url "http://johanneslink.net/projects/cpsuite.jsp"
+                  scm {
+                     url "n/a"
+                     connection "n/a"
+                  }
+                  licenses {
+                     license {
+                        name "The Apache Software License, Version 2.0"
+                        url "http://www.apache.org/license/LICENSE-2.0.txt"
+                        distribution "repo"
+                     }
+                  }
+                  developers {
+                     developer {
+                        id "author"
+                        name "Johannes Link"
+                        email "business@johanneslink.net"
+                     }
+                  }
+               }
+           }
+       }
+   }
+
+}
+

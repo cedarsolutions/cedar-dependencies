@@ -1,0 +1,2 @@
+// vim: set ft=groovy:
+include "gwt-sl", "cpsuite"
