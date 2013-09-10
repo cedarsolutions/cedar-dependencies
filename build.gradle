@@ -41,6 +41,18 @@ subprojects {
    apply plugin: 'signing'
 
    group = "com.googlecode.cedar-common"
+   buildDir = "../build/${project.name}"
+   
+   task libraryJar(type: Copy) {
+      outputs.upToDateWhen { false }
+      from(".")
+      into(file(buildDir.canonicalPath + "/libs").canonicalPath)
+      include("${project.name}-${version}.jar")
+   }
+
+   // this tricks gradle into generating the jar by executing libraryJar
+   tasks.jar.dependsOn(libraryJar)
+   jar.enabled = false
 
    uploadArchives {
        repositories {
@@ -75,23 +87,11 @@ subprojects {
 project(":gwt-sl") {
 
    version = "1.2"
-   buildDir = "../build/gwt-sl"
-   
-   task libraryJar(type: Copy) {
-      outputs.upToDateWhen { false }
-      from(".")
-      into(file(buildDir.canonicalPath + "/libs").canonicalPath)
-      include("gwt-sl-${version}.jar")
-   }
-
-   // this tricks gradle into generating the jar by executing libraryJar
-   tasks.jar.dependsOn(libraryJar)
-   jar.enabled = false
 
    uploadArchives {
        repositories {
            mavenDeployer {
-               pom.artifactId = "gwt-sl"
+               pom.artifactId = "${project.name}"
                pom.version = "${version}"
                pom.project {
                   name "GWT Server Library (Repackaged)"
@@ -132,14 +132,6 @@ project(":gwt-sl") {
 project(":cpsuite") {
 
    version = "1.2.6"
-   buildDir = "../build/cpsuite"
-   
-   task libraryJar(type: Copy) {
-      outputs.upToDateWhen { false }
-      from(".")
-      into(file(buildDir.canonicalPath + "/libs").canonicalPath)
-      include("cpsuite-${version}.jar")
-   }
 
    // this tricks gradle into generating the jar by executing libraryJar
    tasks.jar.dependsOn(libraryJar)
@@ -148,7 +140,7 @@ project(":cpsuite") {
    uploadArchives {
        repositories {
            mavenDeployer {
-               pom.artifactId = "cpsuite"
+               pom.artifactId = "${project.name}"
                pom.version = "${version}"
                pom.project {
                   name "Classpath Suite (Repackaged)"
