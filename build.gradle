@@ -56,6 +56,11 @@ propFileLoader.traditionalPropertiesInit()
 // * Project configuration
 // ************************
 
+// Validate publish configuration
+task validatePublishConfig() << {
+   validateMavenRepositoryUrl()
+}
+
 // Common setup for subprojects
 subprojects {
    apply plugin: "java"
@@ -68,7 +73,7 @@ subprojects {
    uploadArchives {
        repositories {
            mavenDeployer {
-               repository(url: config_mavenPublishRepositoryUrl)
+               repository(url: getMavenRepositoryUrl())
                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) } 
            }
        }
@@ -86,7 +91,8 @@ subprojects {
       sign jar
    }
 
-   task publish(dependsOn: uploadArchives)
+   task publish(dependsOn: [ validatePublishConfig, uploadArchives, ])
+   uploadArchives.mustRunAfter validatePublishConfig
 
    // "generate" the library jar by copying what's checked into revision control
    task libraryJar(type: Copy) {
@@ -191,6 +197,39 @@ project(":cpsuite") {
        }
    }
 
+}
+
+
+// ********************
+// * Other build tasks
+// ********************
+
+// Validate the Mercurial-based Maven repository URL
+def validateMavenRepositoryUrl() {
+   if (config_mercurialMavenProject == "unset") {
+      throw new InvalidUserDataException("Publish is not allowed: config_mercurialMavenProject is unset")
+   } else {
+      if (!(file(config_mercurialMavenProject).isDirectory()
+            && file(config_mercurialMavenProject + "/.hg").isDirectory()
+            && file(config_mercurialMavenProject + "/maven").isDirectory())) {
+         throw new InvalidUserDataException("Publish is not allowed: not a Mercurial repository: " + config_mercurialMavenProject)
+      }
+   }
+}
+
+// Get the proper Mercurial-based Maven repository URL
+def getMavenRepositoryUrl() {
+   if (config_mercurialMavenProject == "unset") {
+      return null
+   } else {
+      if (!(file(config_mercurialMavenProject).isDirectory()
+            && file(config_mercurialMavenProject + "/.hg").isDirectory()
+            && file(config_mercurialMavenProject + "/maven").isDirectory())) {
+         return null
+      } else {
+         return "file://" + file(config_mercurialMavenProject).canonicalPath.replace("\\", "/") + "/maven"
+      }
+   }
 }
 
 
