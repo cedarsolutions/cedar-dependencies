@@ -322,7 +322,7 @@ tasks.eclipse.dependsOn(cleanEclipse)
 
 // Hide the various derived directories from Eclipse
 project.eclipse.project.file.withXml { provider ->
-   ignoreResourcesFromDirectories(provider, ["build", ])
+   ignoreResourcesFromDirectories(provider, [ ".gradle", "build", ])
 } 
 
 // Ignore resources in a specific directory
