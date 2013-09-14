@@ -21,7 +21,6 @@
 // * Project  : Common Dependencies
 // *
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-// http://stackoverflow.com/questions/1163173/why-use-gradle-instead-of-ant-or-maven
 
 // ***************
 // * Gradle setup
@@ -30,49 +29,59 @@
 // Sources for the build script itself
 buildscript {
    repositories {
-      mavenCentral()
+      mavenLocal()   // Local Maven repository
+      maven { url "http://maven.cedar-common.googlecode.com/hg/maven/" }   // Cedar Common code
    }
 
    dependencies {
-      classpath "com.admc:gradle-javaPropFile-plugin:latest.integration"
+      classpath "com.googlecode.cedar-common:cedar-build:0.8.2"
    }
-} 
+}
 
 // Plugins
 apply plugin: "base"
-apply plugin: "javaPropFile"
+apply plugin: "cedarBuild"
 
-// Imports
-import groovy.swing.SwingBuilder
-import javax.swing.JFrame
-
-// This loads configuration from app.properties and overrides with local.properties
-// See: https://github.com/unsaved/gradle-javaPropFile-plugin/tree/master/doc#void-propfileloadertraditionalpropertiesinit
-propFileLoader.traditionalPropertiesInit()  
+// Load properties from standard configuration files (build.properties and local.properties)
+cedarProperties.loadStandardProperties()
 
 
 // ************************
 // * Project configuration
 // ************************
 
-// Validate publish configuration
-task validatePublishConfig() << {
-   validateMavenRepositoryUrl()
-}
+// Configuration for digital signatures
+cedarSigning {
+   gpgKeyId = config_gpgKeyId
+   gpgSecretKey = config_gpgSecretKey
+   projects = allprojects
+} 
 
 // Common setup for subprojects
 subprojects {
    apply plugin: "java"
-   apply plugin: "maven"
-   apply plugin: "signing"
+   apply plugin: "cedarPublish"
 
    group = "com.googlecode.cedar-common"
    buildDir = { "../build/${project.name}" }
+
+   artifacts {
+      jar
+   }
+
+   signing {
+      required = { cedarPublish.isSignatureRequired() }
+      sign jar
+   }
+
+   cedarPublish {
+      mercurialMavenProject = config_mercurialMavenProject
+   }
    
    uploadArchives {
        repositories {
            mavenDeployer {
-               repository(url: getMavenRepositoryUrl())
+               repository(url: cedarPublish.getPublishRepositoryUrl())
                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) } 
            }
        }
@@ -80,18 +89,6 @@ subprojects {
 
    install { 
    }
-
-   artifacts {
-      jar
-   }
-
-   signing {
-      required = { gradle.taskGraph.hasTask(":${project.name}:uploadArchives") }
-      sign jar
-   }
-
-   task publish(dependsOn: [ validatePublishConfig, uploadArchives, ])
-   uploadArchives.mustRunAfter validatePublishConfig
 
    // "generate" the library jar by copying what's checked into revision control
    task libraryJar(type: Copy) {
@@ -196,117 +193,5 @@ project(":cpsuite") {
        }
    }
 
-}
-
-
-// ********************
-// * Other build tasks
-// ********************
-
-// Validate the Mercurial-based Maven repository URL
-def validateMavenRepositoryUrl() {
-   if (config_mercurialMavenProject == "unset") {
-      throw new InvalidUserDataException("Publish is not allowed: config_mercurialMavenProject is unset")
-   } else {
-      if (!(file(config_mercurialMavenProject).isDirectory()
-            && file(config_mercurialMavenProject + "/.hg").isDirectory()
-            && file(config_mercurialMavenProject + "/maven").isDirectory())) {
-         throw new InvalidUserDataException("Publish is not allowed: not a Mercurial repository: " + config_mercurialMavenProject)
-      }
-   }
-}
-
-// Get the proper Mercurial-based Maven repository URL
-def getMavenRepositoryUrl() {
-   if (config_mercurialMavenProject == "unset") {
-      return null
-   } else {
-      if (!(file(config_mercurialMavenProject).isDirectory()
-            && file(config_mercurialMavenProject + "/.hg").isDirectory()
-            && file(config_mercurialMavenProject + "/maven").isDirectory())) {
-         return null
-      } else {
-         return "file://" + file(config_mercurialMavenProject).canonicalPath.replace("\\", "/") + "/maven"
-      }
-   }
-}
-
-
-// *********************
-// * Digital signatures
-// *********************
-
-// Set all of the signature configuration, for all projects
-def setSignatureConfiguration(passphrase) {
-   allprojects { ext."signing.keyId" = config_gpgKeyId }
-   allprojects { ext."signing.secretKeyRingFile" = config_gpgSecretKey }
-   allprojects { ext."signing.password" = passphrase }
-}
-
-// Get the GPG passphrase from the user when it's needed 
-gradle.taskGraph.whenReady { taskGraph ->
-   if (taskGraph.allTasks.any { it instanceof Sign && it.required }) {
-      Console console = System.console()
-      if (console != null) {
-         getInputViaConsole("Enter passphrase for GPG key ${config_gpgKeyId}:", true, { input -> setSignatureConfiguration(input) })
-      } else {
-         getInputViaPopup("GPG Key ${config_gpgKeyId}", "Enter passphrase:", true, { input -> setSignatureConfiguration(input) })
-      }
-   }
-}
-
-// Get input from a user via the system console, executing a closure with the result
-def getInputViaConsole(label, secure, action) {
-   Console console = System.console()
-   if (secure) {
-      def value = console.readPassword("\n\n" + label + " ")
-      action(value)
-   } else {
-      def value = console.readLine("\n\n" + label + " ")
-      action(value)
-   }
-}
-
-// Get password input from a user, executing a closure with the result
-def getInputViaPopup(title, label, secure, action) {
-   boolean alive = true
-
-   def swing = new SwingBuilder()
-   def button = swing.button("Ok")
-   def prefix = swing.label(label)
-   def value = null
-
-   def frame = swing.frame(title: title, defaultCloseOperation: JFrame.EXIT_ON_CLOSE) {
-      panel {
-         widget(prefix)
-         if (secure) {
-            value = passwordField(columns:18)
-         } else {
-            value = textField(columns:18)
-         }
-         widget(button)
-      }
-   }
-
-   frame.setLocationRelativeTo(null)
-
-   button.actionPerformed = {
-      action(value.text)
-      alive = false
-   }
-
-   value.actionPerformed = {
-      action(value.text)
-      alive = false
-   }
-
-   frame.pack()
-   frame.show()
-
-   while (alive) {
-      sleep(1000)
-   }
-
-   frame.hide()
 }
 
