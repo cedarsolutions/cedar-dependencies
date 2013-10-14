@@ -214,7 +214,7 @@ project(":mvp4g") {
    // to change the version.  I decided to add a suffix "-repackaged".
 
    // Taken from: http://mvp4g.googlecode.com/svn/maven2/snapshots/com/googlecode/mvp4g/mvp4g/1.5.0-SNAPSHOT/
-   version = "1.5.0-repackaged-20121019.011853-3"
+   version = "1.5.0-20121019.011853-3-repackaged"
 
    uploadArchives {
        repositories {
