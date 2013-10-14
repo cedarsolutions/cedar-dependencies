@@ -1,2 +1,2 @@
 // vim: set ft=groovy:
-include "gwt-sl", "cpsuite"
+include "gwt-sl", "cpsuite", "mvp4g"

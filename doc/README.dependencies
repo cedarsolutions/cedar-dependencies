@@ -5,9 +5,13 @@ source software packages.
 
 Most external functionality has been pulled into the project in compiled form,
 as part of a jar file.  Most jars are sourced from Maven.  In a few cases, jar
-files are not available in Maven. I have taken those jar files and uploaded
-them to Maven under the cedar-common group, to make them accessible to other
-projects the depend on cedar-common.  These dependencies are documented below.
+files are not available in Maven, or are not available in a way that I am
+comfortable using them (i.e. I don't want to force CedarCommon clients to rely
+on a snapshot release). 
+
+I have taken those jar files and uploaded them to Maven under the cedar-common
+group, to make them accessible to other projects the depend on cedar-common.
+These dependencies are documented below.
 
 A dependency has several attributes:
 
@@ -22,31 +26,34 @@ dependencies all bundled together in a single download.
 
 LICENSES
 
-   License                      License Text
+   License                             License Text
    ================================================================================================
-   Apache License v2.0          doc/licenses/apache_v2.0_license.txt
+   Apache License v2.0                 doc/licenses/apache_v2.0_license.txt
 
 
 UPSTREAM PROJECTS
 
-   Project                      License                 URL
+   Project                             License                 URL
    ================================================================================================
-   Classpath Suite              Apache License v2.0     http://www.johanneslink.net/projects/cpsuite.jsp
-   GWT Server Library           Apache License v2.0     http://code.google.com/p/gwt-sl/
+   Classpath Suite                     Apache License v2.0     http://www.johanneslink.net/projects/cpsuite.jsp
+   GWT Server Library                  Apache License v2.0     http://code.google.com/p/gwt-sl/
+   Mvp4g                               Apache License v2.0     http://code.googlecode.com/p/mvp4g
 
 
 BINARY SOURCES
 
-   Source                       Project                 Location
+   Source                              Project                 Location
    ================================================================================================
-   Classpath Suite v1.2.6       ClasspathSuite          cpsuite-1.2.6.jar
-   GWT Server Library v1.2      GWT Server Library      gwt-sl-1.2.jar
+   Classpath Suite v1.2.6              ClasspathSuite          cpsuite-1.2.6.jar
+   GWT Server Library v1.2             GWT Server Library      gwt-sl-1.2.jar
+   Mvp4g v1.5.0-SNAPSHOT               Mvp4g                   mvp4g-1.5.0-20120509.003820-1.jar
 
 
 JAR FILES
 
-   Jar File                     Project                 Binary Source
+   Jar File                            Project                 Binary Source
    ================================================================================================
-   cpsuite-1.2.6.jar            ClasspathSuite          ClasspathSuite v1.2.6
-   gwt-sl-1.2.jar               GWT Server Library      GWT Server Libary v1.2
+   cpsuite-1.2.6.jar                   ClasspathSuite          ClasspathSuite v1.2.6
+   gwt-sl-1.2.jar                      GWT Server Library      GWT Server Libary v1.2
+   mvp4g-1.5.0-20120509.003820-1.jar   Mvp4g                   Mvp4g v1.5.0-SNAPSHOT
 

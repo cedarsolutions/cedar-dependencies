@@ -112,6 +112,9 @@ subprojects {
 // Subproject for gwt-sl dependency
 project(":gwt-sl") {
 
+   // As of 2013, the obsolete version of GWT-SL that I want to use is not
+   // available in any Maven repository.  
+
    version = "1.2"
 
    uploadArchives {
@@ -157,6 +160,8 @@ project(":gwt-sl") {
 // Subproject for cpsuite dependency
 project(":cpsuite") {
 
+   // As of 2013, cpsuite is not available in any Maven repository.
+
    version = "1.2.6"
 
    uploadArchives {
@@ -186,6 +191,101 @@ project(":cpsuite") {
                         id "author"
                         name "Johannes Link"
                         email "business@johanneslink.net"
+                     }
+                  }
+               }
+           }
+       }
+   }
+
+}
+
+// Subproject for mvp4g dependency
+project(":mvp4g") {
+
+   // As of 2013, I've been using this snapshot for over a year, but there
+   // hasn't been a formal upstream release.  I'm not comfortable relying on a
+   // snapshot, because other people using CedarCommon might unexpectedly end
+   // up with a different version than me, and it might work a little differently.
+
+   // Unfortunately, if I use the original version (1.5.0-20120509.003820-1),
+   // Maven auto-detects that the file is a snapshot and generates a directory
+   // 1.5.0-SNAPSHOT within the repository.  That's not what I want, so I have
+   // to change the version.  I decided to add a suffix "-pre".
+
+   // Taken from: http://mvp4g.googlecode.com/svn/maven2/snapshots/com/googlecode/mvp4g/mvp4g/1.5.0-SNAPSHOT/
+   version = "1.5.0-20120509.003820-1-pre"
+
+   uploadArchives {
+       repositories {
+           mavenDeployer {
+               pom.artifactId = "${project.name}"
+               pom.version = "${version}"
+               pom.project {
+                  name "Mvp4g (Repackaged)"
+                  description "*** THIS VERSION UPLOADED FOR USE WITH CEDAR-COMMON, TO AVOID SNAPSHOT DEPENDENCIES. *** " +
+                              "Model View Presenter with Event Bus For GWT."
+                  url "http://code.googlecode.com/p/mvp4g"
+
+                  scm {
+                     url "scm:svn:http://mvp4g.googlecode.com/svn"
+                     connection "scm:svn:http://mvp4g.googlecode.com/svn"
+                     developerConnection "scm:svn:http://mvp4g.googlecode.com/svn"
+                  }
+
+                  licenses {
+                     license {
+                        name "The Apache Software License, Version 2.0"
+                        url "http://www.apache.org/license/LICENSE-2.0.txt"
+                        distribution "repo"
+                     }
+                  }
+
+                  developers {
+                     developer {
+                        id "developer"
+                        name "Pierre-Laurent Coirier"
+                     }
+                  }
+
+                  contributors {
+                     contributor {
+                        name "Javier Sandino"
+                     }
+                     contributor {
+                        name "Izzet Mustafayev"
+                     }
+                     contributor {
+                        name "Nick Hebner"
+                     }
+                     contributor {
+                        name "Harald Schilly"
+                     }
+                     contributor {
+                        name "Lukasz Dywicky"
+                     }
+                     contributor {
+                        name "Sergey Shvets"
+                     }
+                  }
+
+                  dependencies {
+                     dependency {
+                        groupId "com.google.gwt"
+                        artifactId "gwt-dev"
+                        version "2.2.0"
+                        scope "provided"
+                     }
+                     dependency {
+                        groupId "com.google.gwt"
+                        artifactId "gwt-user"
+                        version "2.2.0"
+                        scope "provided"
+                     }
+                     dependency {
+                        groupId "com.google.gwt.inject"
+                        artifactId "gin"
+                        version "1.5.0"
                      }
                   }
                }
