@@ -211,10 +211,10 @@ project(":mvp4g") {
    // Unfortunately, if I use the original version (1.5.0-20120509.003820-1),
    // Maven auto-detects that the file is a snapshot and generates a directory
    // 1.5.0-SNAPSHOT within the repository.  That's not what I want, so I have
-   // to change the version.  I decided to add a suffix "-pre".
+   // to change the version.  I decided to add a suffix "-repackaged".
 
    // Taken from: http://mvp4g.googlecode.com/svn/maven2/snapshots/com/googlecode/mvp4g/mvp4g/1.5.0-SNAPSHOT/
-   version = "1.5.0-20120509.003820-1-pre"
+   version = "1.5.0-repackaged-20121019.011853-3"
 
    uploadArchives {
        repositories {
