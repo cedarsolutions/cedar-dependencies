@@ -65,10 +65,6 @@ subprojects {
    group = "com.googlecode.cedar-common"
    buildDir = { "../build/${project.name}" }
 
-   artifacts {
-      jar
-   }
-
    signing {
       required = { cedarPublish.isSignatureRequired() }
       sign jar
@@ -90,16 +86,30 @@ subprojects {
    install { 
    }
 
-   // "generate" the library jar by copying what's checked into revision control
-   task libraryJar(type: Copy) {
+   // "generate" the jars by copying what's checked into revision control
+   task generateJars(type: Copy) {
       outputs.upToDateWhen { false }
       from(file("."))
       into(file(buildDir.canonicalPath + "/libs").canonicalPath)
       include({ "${project.name}-${version}.jar" })
+      include({ "${project.name}-${version}-sources.jar" })
+      include({ "${project.name}-${version}-javadoc.jar" })
    }
 
-   // this tricks gradle into generating the jar by executing libraryJar
-   tasks.jar.dependsOn(libraryJar)
+   // this tricks gradle into generating the jar by executing generateJars
+   task sourcesJar(type: Jar, dependsOn: generateJars) { 
+      classifier = 'sources' 
+      enabled = false
+   } 
+
+   // this tricks gradle into generating the jar by executing generateJars
+   task javadocJar(type: Jar, dependsOn: generateJars) { 
+      classifier = 'javadoc' 
+      enabled = false
+   }
+
+   // this tricks gradle into generating the jar by executing generateJars
+   tasks.jar.dependsOn(generateJars)
    jar.enabled = false
 
    // force the signJar task to run every time, even if it thinks it's up-to-date
@@ -116,6 +126,11 @@ project(":gwt-sl") {
    // available in any Maven repository.  
 
    version = "1.2"
+
+   artifacts {
+      jar
+      archives sourcesJar
+   }
 
    uploadArchives {
        repositories {
@@ -163,6 +178,10 @@ project(":cpsuite") {
    // As of 2013, cpsuite is not available in any Maven repository.
 
    version = "1.2.6"
+
+   artifacts {
+      jar
+   }
 
    uploadArchives {
        repositories {
@@ -215,6 +234,12 @@ project(":mvp4g") {
 
    // Taken from: http://mvp4g.googlecode.com/svn/maven2/snapshots/com/googlecode/mvp4g/mvp4g/1.5.0-SNAPSHOT/
    version = "1.5.0-20121019.011853-3-repackaged"
+
+   artifacts {
+      jar
+      archives sourcesJar
+      archives javadocJar
+   }
 
    uploadArchives {
        repositories {
