@@ -7,7 +7,7 @@
 // *
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // *
-// * Copyright (c) 2013 Kenneth J. Pronovici.
+// * Copyright (c) 2013-2014 Kenneth J. Pronovici.
 // * All rights reserved.
 // *
 // * This program is free software; you can redistribute it and/or
@@ -222,18 +222,18 @@ project(":cpsuite") {
 // Subproject for mvp4g dependency
 project(":mvp4g") {
 
-   // As of 2013, I've been using this snapshot for over a year, but there
-   // hasn't been a formal upstream release.  I'm not comfortable relying on a
-   // snapshot, because other people using CedarCommon might unexpectedly end
-   // up with a different version than me, and it might work a little differently.
+   // As of May 2014, I've been using this snapshot, but there hasn't been a
+   // formal upstream release.  I'm not comfortable relying on a snapshot,
+   // because other people using CedarCommon might unexpectedly end up with a
+   // different version than me, and it might work a little differently.
 
-   // Unfortunately, if I use the original version (1.5.0-20120509.003820-1),
+   // Unfortunately, if I use the original version (1.5.0-20140501.220709-7),
    // Maven auto-detects that the file is a snapshot and generates a directory
    // 1.5.0-SNAPSHOT within the repository.  That's not what I want, so I have
    // to change the version.  I decided to add a suffix "-repackaged".
 
    // Taken from: http://mvp4g.googlecode.com/svn/maven2/snapshots/com/googlecode/mvp4g/mvp4g/1.5.0-SNAPSHOT/
-   version = "1.5.0-20121019.011853-3-repackaged"
+   version = "1.5.0-20140501.220709-7-repackaged"
 
    artifacts {
       jar
@@ -270,6 +270,10 @@ project(":mvp4g") {
                      developer {
                         id "developer"
                         name "Pierre-Laurent Coirier"
+                     }
+                     developer {
+                        id "developer"
+                        name "Frank Hossfeld"
                      }
                   }
 
