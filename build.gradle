@@ -31,11 +31,10 @@ buildscript {
    repositories {
       mavenCentral()
       mavenLocal()   // Local Maven repository
-      maven { url "http://maven.cedar-common.googlecode.com/hg/maven/" }   // Cedar Common code
    }
 
    dependencies {
-      classpath "com.googlecode.cedar-common:cedar-build:0.8.9"
+      classpath "com.googlecode.cedar-common:cedar-build:0.8.14"
    }
 }
 
@@ -61,31 +60,11 @@ cedarSigning {
 // Common setup for subprojects
 subprojects {
    apply plugin: "java"
+   apply plugin: "cedarBuild"
    apply plugin: "cedarPublish"
 
    group = "com.googlecode.cedar-common"
    buildDir = { "../build/${project.name}" }
-
-   signing {
-      required = { cedarPublish.isSignatureRequired() }
-      sign jar
-   }
-
-   cedarPublish {
-      mercurialMavenProject = config_mercurialMavenProject
-   }
-   
-   uploadArchives {
-       repositories {
-           mavenDeployer {
-               repository(url: cedarPublish.getPublishRepositoryUrl())
-               beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) } 
-           }
-       }
-   }
-
-   install { 
-   }
 
    // "generate" the jars by copying what's checked into revision control
    task generateJars(type: Copy) {
@@ -113,6 +92,44 @@ subprojects {
    tasks.jar.dependsOn(generateJars)
    jar.enabled = false
 
+   cedarSigning {
+      gpgKeyId = config_gpgKeyId
+      gpgSecretKey = config_gpgSecretKey
+      projects = allprojects
+   } 
+
+   artifacts {
+      jar
+      archives sourcesJar
+      archives javadocJar
+   }
+
+   signing {
+      required = { cedarPublish.isSignatureRequired() }
+      sign jar
+      sign javadocJar
+      sign sourcesJar
+   }
+
+   cedarPublish {
+      mavenRepositoryUrl = config_mavenRepositoryUrl
+      mavenRepositoryUser = config_mavenRepositoryUser
+   }
+   
+   uploadArchives {
+       repositories {
+           mavenDeployer {
+               repository(url: cedarPublish.getPublishRepositoryUrl()) {
+                   authentication(userName: cedarPublish.getMavenRepositoryUser(), password: project.convention.plugins.cedarPublish.getMavenRepositoryPassword())
+               }
+               beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) } 
+           }
+       }
+   }
+
+   install { 
+   }
+
    // force the signJar task to run every time, even if it thinks it's up-to-date
    tasks.matching { task -> task.name == "signJar" }.all {
       outputs.upToDateWhen { false }
@@ -127,11 +144,6 @@ project(":gwt-sl") {
    // available in any Maven repository.  
 
    version = "1.2"
-
-   artifacts {
-      jar
-      archives sourcesJar
-   }
 
    uploadArchives {
        repositories {
@@ -170,7 +182,6 @@ project(":gwt-sl") {
            }
        }
    }
-
 }
 
 // Subproject for cpsuite dependency
@@ -179,10 +190,6 @@ project(":cpsuite") {
    // As of 2013, cpsuite is not available in any Maven repository.
 
    version = "1.2.6"
-
-   artifacts {
-      jar
-   }
 
    uploadArchives {
        repositories {
@@ -217,7 +224,6 @@ project(":cpsuite") {
            }
        }
    }
-
 }
 
 // Subproject for mvp4g dependency
@@ -235,12 +241,6 @@ project(":mvp4g") {
 
    // Taken from: http://mvp4g.googlecode.com/svn/maven2/snapshots/com/googlecode/mvp4g/mvp4g/1.5.0-SNAPSHOT
    version = "1.5.0-20140506.192324-8-repackaged"
-
-   artifacts {
-      jar
-      archives sourcesJar
-      archives javadocJar
-   }
 
    uploadArchives {
        repositories {
@@ -302,6 +302,5 @@ project(":mvp4g") {
            }
        }
    }
-
 }
 
