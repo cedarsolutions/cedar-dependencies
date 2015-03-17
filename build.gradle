@@ -307,11 +307,12 @@ project(":mvp4g") {
 // Subproject for objectify dependency
 project(":objectify") {
 
-   // Objectify 3.x is no longer being developed.  Only version 4 and later can
-   // be found on Maven Central.  Since the Maven repository is sitting on
-   // Google Code, which will be obsolete in August, I've decided to pull this
-   // dependency in here at the same time I transition to Maven Central, to
-   // make sure that Cedar Common is safe from future repository changes. 
+   // As of 2015, Objectify 3.x is no longer being developed.  Only version 4
+   // and later can be found on Maven Central.  Since the Maven repository is
+   // sitting on Google Code, which will be obsolete in August 2015, I've
+   // decided to pull this dependency in here at the same time I transition to
+   // Maven Central, to make sure that Cedar Common is safe from future
+   // repository changes. 
 
    // Taken from: "http://maven.objectify-appengine.googlecode.com/git/"
    version = "3.1"
