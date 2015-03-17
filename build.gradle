@@ -304,3 +304,50 @@ project(":mvp4g") {
    }
 }
 
+// Subproject for objectify dependency
+project(":objectify") {
+
+   // Objectify 3.x is no longer being developed.  Only version 4 and later can
+   // be found on Maven Central.  Since the Maven repository is sitting on
+   // Google Code, which will be obsolete in August, I've decided to pull this
+   // dependency in here at the same time I transition to Maven Central, to
+   // make sure that Cedar Common is safe from future repository changes. 
+
+   // Taken from: "http://maven.objectify-appengine.googlecode.com/git/"
+   version = "3.1"
+
+   uploadArchives {
+       repositories {
+           mavenDeployer {
+               pom.artifactId = "${project.name}"
+               pom.version = "${version}"
+               pom.project {
+                  name "Objectify-AppEngine (Repackaged)"
+                  description "*** THIS VERSION UPLOADED FOR USE WITH CEDAR-COMMON, TO AVOID DEPENDENCIES ON GOOGLE CODE-BASED MAVEN REPOSITORIES. *** " +
+                              "The simplest convenient interface to the Google App Engine datastore"
+                  url "http://code.google.com/p/objectify-appengine/"
+                  scm {
+                     url "scm:https://code.google.com/p/cedar-common.dependencies/"
+                     connection "scm:hg:https://code.google.com/p/cedar-common.dependencies/"
+                     developerConnection "scm:hg:https://code.google.com/p/cedar-common.dependencies/"
+                  }
+                  licenses {
+                     license {
+                        name "MIT License"
+                        url "http://www.opensource.org/licenses/mit-license.php"
+                        distribution "repo"
+                     }
+                  }
+                  developers {
+                     developer {
+                        id "author"
+                        name "Jeff Schnitzer"
+                        email "jeff@infohazard.org"
+                     }
+                  }
+               }
+           }
+       }
+   }
+}
+
